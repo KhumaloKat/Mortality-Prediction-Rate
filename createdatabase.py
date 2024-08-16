@@ -6,20 +6,20 @@ from sqlalchemy.ext.declarative import declarative_base
 DATABASE_URL = 'sqlite:///database.db'
 engine = create_engine(DATABASE_URL)
 
-# Define metadata and Base
-metadata = MetaData(bind=engine)
-Base = declarative_base(bind=engine)
+# Define metadata and Base without binding to the engine
+metadata = MetaData()
+Base = declarative_base()
 
 # Define the User model
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    username = Column(String)
-    password = Column(String)
+    username = Column(String, nullable=False)
+    password = Column(String, nullable=False)
 
-# Create tables
-Base.metadata.create_all()
+# Create tables by binding the engine at this stage
+Base.metadata.create_all(bind=engine)
 
 # Start local session
 SessionLocal = sessionmaker(bind=engine)
@@ -32,9 +32,10 @@ sample_users = [
 ]
 
 for user_data in sample_users:
-    user = User(id= user_data["id"],username=user_data["username"], password=user_data["password"])
+    user = User(id=user_data["id"], username=user_data["username"], password=user_data["password"])
     session.add(user)
 
+# Commit the session and close it
 session.commit()
 session.close()
 
